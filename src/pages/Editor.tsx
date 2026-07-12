@@ -74,7 +74,7 @@ import {
   ExportProgressModal,
   type ExportStatus,
 } from "../components/modals/ExportProgressModal";
-import { splitQueries, extractTableName, getExplainableQueries, statementLabel } from "../utils/sql";
+import { splitQueries, splitStatements, findStatementAtOffset, extractTableName, getExplainableQueries, statementLabel, type Statement } from "../utils/sql";
 import {
   createResultEntries,
   updateResultEntry,
@@ -156,6 +156,20 @@ const CHEVRON_SELECT_STYLE: React.CSSProperties = {
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right center",
 };
+
+// Resolves the statement the cursor is currently inside (TablePlus-style
+// "run statement at cursor"), used by both the Run and Explain actions.
+function getStatementAtCursor(
+  editor: Parameters<OnMount>[0],
+  dialect: string | undefined,
+): Statement | undefined {
+  const model = editor.getModel();
+  const position = editor.getPosition();
+  if (!model || !position) return undefined;
+  const offset = model.getOffsetAt(position);
+  const statements = splitStatements(model.getValue(), dialect);
+  return findStatementAtOffset(statements, offset);
+}
 
 export const Editor = () => {
   const { t } = useTranslation();
@@ -1429,14 +1443,12 @@ export const Editor = () => {
 
     // Monaco Editor: handle selection and multi-query
     if (!editorsRef.current[activeTab.id]) {
-      // Fallback: use saved query when editor ref is not available (e.g. after tab restore)
+      // Fallback: no cursor context available (editor ref not mounted, e.g.
+      // after tab restore) — run everything, same precedent as runAutoQuery.
       if (activeTab.query?.trim()) {
         const queries = splitQueries(activeTab.query, activeDialect);
         if (queries.length <= 1) runQuery(queries[0] || activeTab.query, 1);
-        else {
-          setSelectableQueries(queries);
-          setIsQuerySelectionModalOpen(true);
-        }
+        else runMultipleQueries(queries);
       }
       return;
     }
@@ -1456,15 +1468,11 @@ export const Editor = () => {
       return;
     }
 
-    const fullText = editor.getValue();
-    if (!fullText.trim()) return;
-
-    const queries = splitQueries(fullText, activeDialect);
-    if (queries.length <= 1) runQuery(queries[0] || fullText, 1);
-    else {
-      setSelectableQueries(queries);
-      setIsQuerySelectionModalOpen(true);
-    }
+    // No selection: run the statement the cursor is currently inside
+    // (TablePlus-style), not the whole file.
+    const statement = getStatementAtCursor(editor, activeDialect);
+    if (!statement) return;
+    runQuery(statement.text, 1);
   }, [activeTab, activeDialect, runQuery, runMultipleQueries]);
 
   const openExplainForQuery = useCallback((query: string) => {
@@ -1475,32 +1483,50 @@ export const Editor = () => {
   const handleExplainButton = useCallback(() => {
     if (!activeTab || !activeConnectionId) return;
 
-    // Get text: selection first, then full editor content, then saved query
     const editor = editorsRef.current[activeTab.id];
-    let text = "";
-    if (editor) {
-      const selection = editor.getSelection();
-      const selectedText = selection && !selection.isEmpty()
-        ? editor.getModel()?.getValueInRange(selection)
-        : undefined;
-      text = (selectedText || editor.getValue()).trim();
-    } else {
-      text = (activeTab.query ?? "").trim();
+    if (!editor) {
+      // No cursor context available (editor ref not mounted) — fall back to
+      // the saved query text, same as before.
+      const text = (activeTab.query ?? "").trim();
+      if (!text) return;
+      const explainable = getExplainableQueries(text, activeDialect);
+      if (explainable.length === 0) {
+        openExplainForQuery(text);
+      } else if (explainable.length === 1) {
+        openExplainForQuery(explainable[0].query);
+      } else {
+        setExplainSelectableQueries(explainable);
+        setIsExplainSelectionOpen(true);
+      }
+      return;
     }
 
-    if (!text) return;
-
-    const explainable = getExplainableQueries(text, activeDialect);
-    if (explainable.length === 0) {
-      // No explainable queries — open modal with full text so it shows the error
-      openExplainForQuery(text);
-    } else if (explainable.length === 1) {
-      openExplainForQuery(explainable[0].query);
-    } else {
-      setExplainSelectableQueries(explainable);
-      setIsExplainSelectionOpen(true);
+    const selection = editor.getSelection();
+    if (selection && !selection.isEmpty()) {
+      const selectedText = (editor.getModel()?.getValueInRange(selection) ?? "").trim();
+      if (!selectedText) return;
+      const explainable = getExplainableQueries(selectedText, activeDialect);
+      if (explainable.length === 0) {
+        // No explainable queries — open modal with full text so it shows the error
+        openExplainForQuery(selectedText);
+      } else if (explainable.length === 1) {
+        openExplainForQuery(explainable[0].query);
+      } else {
+        setExplainSelectableQueries(explainable);
+        setIsExplainSelectionOpen(true);
+      }
+      return;
     }
-  }, [activeTab, activeConnectionId, activeDialect, openExplainForQuery]);
+
+    // No selection: explain the statement the cursor is currently inside.
+    const statement = getStatementAtCursor(editor, activeDialect);
+    if (!statement) return;
+    if (!statement.isExplainable) {
+      showAlert(t("editor.statementNotExplainable"), { kind: "warning" });
+      return;
+    }
+    openExplainForQuery(statement.text);
+  }, [activeTab, activeConnectionId, activeDialect, openExplainForQuery, showAlert, t]);
 
   // Keep stable refs in sync for Monaco actions (closure-captured at mount time)
   runQueryRef.current = runQuery;
@@ -3248,6 +3274,7 @@ export const Editor = () => {
               <SqlEditorWrapper
                 height="100%"
                 initialValue={tab.query}
+                dialect={activeDialect}
                 onChange={(val) => {
                   if (isActive) updateTab(tab.id, { query: val });
                 }}
