@@ -5,6 +5,7 @@ import { useEditorTheme } from "../../hooks/useEditorTheme";
 import { loadMonacoTheme } from "../../themes/themeUtils";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { useSettings } from "../../hooks/useSettings";
+import { useKeybindings } from "../../hooks/useKeybindings";
 import { getFontCSS } from "../../utils/settings";
 import {
   splitStatements,
@@ -48,6 +49,9 @@ const SqlEditorInternal = ({
   });
   const editorTheme = useEditorTheme();
   const { settings } = useSettings();
+  const { matchesShortcut } = useKeybindings();
+  const matchesShortcutRef = useRef(matchesShortcut);
+  matchesShortcutRef.current = matchesShortcut;
 
   // Dispose editor on unmount to prevent "domNode" errors from ResizeObserver
   // firing after the DOM container is removed (e.g., cell deletion/movement)
@@ -155,6 +159,15 @@ const SqlEditorInternal = ({
           onRunRef.current();
         }
       );
+
+      // Force the suggestion widget via the user-configurable shortcut
+      editor.onKeyDown((e) => {
+        if (matchesShortcutRef.current(e.browserEvent, "trigger_suggestions")) {
+          e.preventDefault();
+          e.stopPropagation();
+          editor.trigger("keyboard", "editor.action.triggerSuggest", {});
+        }
+      });
 
       // Highlight the statement the cursor is currently inside (no
       // highlight while there's an active selection). Opt-in via the

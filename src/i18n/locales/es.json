@@ -279,10 +279,39 @@
     "noSearchResults": "Ninguna conexión coincide con \"{{query}}\"",
     "gridView": "Vista de cuadrícula",
     "listView": "Vista de lista",
+    "selectedCount": "{{count}} seleccionadas",
+    "deleteSelected": "Eliminar seleccionadas",
+    "moveSelected": "Mover a grupo",
+    "exportSelected": "Exportar selección",
+    "deselectAll": "Deseleccionar todo",
+    "confirmDeleteSelected": "¿Seguro que quieres eliminar {{count}} conexiones seleccionadas?",
+    "deleteSelectedTitle": "Eliminar conexiones seleccionadas",
     "export": "Exportar conexiones",
     "import": "Importar conexiones",
     "exportTitle": "Exportar conexiones",
     "exportWarning": "El archivo exportado contendrá tus contraseñas de base de datos y SSH en texto plano. Guárdalo de forma segura.",
+    "exportModal": {
+      "title": "Exportar conexiones",
+      "subtitle": "Elige cómo exportar tus conexiones",
+      "subtitleSelected": "Exportar {{count}} conexión(es) seleccionada(s)",
+      "encrypted": "Cifrado con contraseña",
+      "encryptedDesc": "Se incluyen todas las conexiones y contraseñas, protegidas con una contraseña de tu elección. Recomendado para copias de seguridad.",
+      "noSecrets": "En texto plano, sin contraseñas",
+      "noSecretsDesc": "Las conexiones se exportan como JSON legible, pero se excluyen todas las contraseñas y frases de paso. Recomendado para compartir.",
+      "plaintext": "En texto plano, con todas las contraseñas",
+      "plaintextDesc": "Las conexiones y contraseñas se exportan como JSON legible. Cualquiera con el archivo puede leer tus credenciales.",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "passwordRequired": "Se requiere una contraseña para una exportación cifrada.",
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "export": "Exportar"
+    },
+    "importPasswordModal": {
+      "title": "Archivo de exportación cifrado",
+      "subtitle": "Este archivo está protegido con una contraseña",
+      "password": "Contraseña",
+      "unlock": "Importar"
+    },
     "importFromApp": {
       "title": "Import from App",
       "subtitle": "Import connections from another installed SQL client",
@@ -301,7 +330,8 @@
       "action": {
         "import": "Import",
         "skip": "Skip",
-        "replace": "Replace"
+        "replace": "Replace",
+        "applyToAll": "Acción para todas:"
       },
       "tabularisJsonHint": "Archivo de exportación de Tabularis (.json)",
       "menuLabel": "Importar conexiones…",
@@ -311,7 +341,9 @@
         "new": "Nuevo grupo…",
         "newPlaceholder": "Nombre del grupo",
         "parentLabel": "en",
-        "parentNone": "Nivel superior"
+        "parentNone": "Nivel superior",
+        "applyToAll": "Grupo para todas:",
+        "keepPerConnection": "Por conexión"
       },
       "betaNotice": "La importación desde otra app está en beta. Si tienes algún problema,",
       "reportIssue": "repórtalo en GitHub."
@@ -626,7 +658,9 @@
             }
           }
         }
-      }
+      },
+      "poweredBy": "Con tecnología de",
+      "openHomepage": "Abrir página"
     },
     "shortcuts": {
       "title": "Atajos de teclado",
@@ -654,9 +688,59 @@
       "notebookRunAll": "Ejecutar Todas las Celdas",
       "categories_notebook": "Notebook",
       "pasteImportClipboard": "Importar desde Portapapeles",
-      "quickNavigator": "Navegador rápido"
+      "quickNavigator": "Navegador rápido",
+      "triggerSuggestions": "Mostrar sugerencias",
+      "refreshTable": "Actualizar tabla"
     },
-    "aiActivity": "Actividad IA"
+    "aiActivity": "Actividad IA",
+    "backup": {
+      "title": "Backup",
+      "directory": "Carpeta de copias",
+      "directoryDesc": "Ninguna carpeta seleccionada.",
+      "chooseDirectory": "Elegir carpeta",
+      "password": "Contraseña de copia",
+      "passwordDesc": "Las copias siempre están cifradas. La contraseña se guarda en el llavero del sistema.",
+      "passwordSetDesc": "Las copias de seguridad se cifran con esta contraseña. Se guarda en el llavero del sistema.",
+      "passwordReplaceDesc": "Introduce una nueva contraseña. Las copias ya creadas conservan la anterior.",
+      "changePassword": "Cambiar contraseña",
+      "webdavPasswordSetDesc": "Hay una contraseña guardada en el llavero del sistema.",
+      "passwordSaved": "Contraseña de copia guardada.",
+      "configureFirst": "Configura primero un destino y define una contraseña de copia.",
+      "interval": "Frecuencia",
+      "intervalDesc": "Con qué frecuencia se escribe una nueva copia.",
+      "every6h": "6 h",
+      "every12h": "12 h",
+      "daily": "Diaria",
+      "weekly": "Semanal",
+      "retention": "Copias conservadas",
+      "retentionDesc": "Los archivos de copia más antiguos se eliminan automáticamente.",
+      "files": "archivos",
+      "backupNow": "Copiar ahora",
+      "lastBackup": "Última copia: {{date}}",
+      "noBackupYet": "Aún no hay copias.",
+      "backupDone": "Copia escrita en {{path}}",
+      "custom": "Personalizada",
+      "destination": "Destino",
+      "target": "Destino de las copias",
+      "targetDesc": "Dónde se escriben los archivos de copia. Una carpeta sincronizada por Dropbox, OneDrive o Syncthing te da una copia en la nube gratis.",
+      "targetLocal": "Carpeta local",
+      "webdavUrl": "URL WebDAV",
+      "webdavUrlDesc": "URL de la carpeta WebDAV donde se suben las copias (p. ej. Nextcloud).",
+      "webdavUsername": "Usuario WebDAV",
+      "webdavUsernameDesc": "Cuenta usada para autenticarse en el servidor WebDAV.",
+      "webdavPassword": "Contraseña WebDAV",
+      "webdavPasswordDesc": "Se guarda en el llavero del sistema. Para Nextcloud, mejor una contraseña de aplicación.",
+      "webdavSaved": "Contraseña WebDAV guardada.",
+      "mode": "Disparador",
+      "modeDesc": "Cuándo se escribe una copia. Manual: solo mediante el botón de abajo.",
+      "modeManual": "Manual",
+      "modeInterval": "Por intervalo",
+      "modeOnClose": "Al cerrar",
+      "modeOnLaunch": "Al abrir",
+      "nextBackup": "Próxima copia: {{date}}",
+      "nextBackupSoon": "Próxima copia: en la próxima comprobación",
+      "hours": "horas"
+    }
   },
   "update": {
     "newVersionAvailable": "Nueva Versión Disponible",
@@ -793,7 +877,8 @@
     "scrollTabsRight": "Desplazar pestañas a la derecha",
     "useIamAuth": "Usar autenticación AWS IAM (RDS)",
     "useIamAuthHint": "El campo de contraseña se interpreta como un token de autenticación de RDS (obtenido con `aws rds generate-db-auth-token`). Requiere TLS. Los tokens caducan cada 15 minutos.",
-    "useIamAuthTlsRequired": "Activa un modo SSL arriba para usar la autenticación AWS IAM."
+    "useIamAuthTlsRequired": "Activa un modo SSL arriba para usar la autenticación AWS IAM.",
+    "changeDatabase": "Cambiar base de datos"
   },
   "sshConnections": {
     "title": "Conexiones SSH",
@@ -838,6 +923,7 @@
     "updateFailed": "Error en la actualización: ",
     "deleteFailed": "Error al eliminar la fila: ",
     "null": "null",
+    "emptySet": "(conjunto vacío)",
     "sortByAsc": "Ordenar por {{col}} ASC",
     "sortByDesc": "Ordenar por {{col}} DESC",
     "clearSort": "Quitar ordenamiento",
@@ -1162,6 +1248,7 @@
       "viewTabs": "Vista en pestañas",
       "viewStacked": "Vista apilada",
       "queryPrefix": "Consulta",
+      "resultSetPrefix": "Resultado",
       "results": "Resultados",
       "collapseAll": "Contraer todo",
       "expandAll": "Expandir todo",
@@ -1644,7 +1731,17 @@
       "resourceTypeInvalid": "El tipo de recurso debe ser \"service\" o \"pod\"",
       "resourceNameRequired": "El nombre del recurso es obligatorio",
       "portInvalid": "El puerto debe estar entre 1 y 65535"
-    }
+    },
+    "advancedSettings": "Configuración avanzada de kubectl",
+    "kubectlPath": "Ruta de kubectl",
+    "kubectlPathPlaceholder": "kubectl",
+    "kubeconfigPath": "Ruta de kubeconfig",
+    "kubeconfigPathPlaceholder": "Ruta al kubeconfig",
+    "pathValidationFailed": "Corrige los campos de ruta avanzada de Kubernetes no válidos antes de continuar.",
+    "pathSelectionReset": "Las rutas avanzadas de Kubernetes han cambiado. Elige de nuevo el contexto, el namespace y el recurso.",
+    "noContexts": "No hay contextos disponibles",
+    "noNamespaces": "No hay namespaces disponibles",
+    "noResources": "No hay recursos disponibles"
   },
   "routines": {
     "menuRun": "Ejecutar…",
@@ -1678,5 +1775,46 @@
   "miniGrid": {
     "runningQuery": "Ejecutando consulta...",
     "copyAll": "Copiar todo"
+  },
+  "deepLink": {
+    "installTitle": "Instalar plugin desde el registro",
+    "installSubtitle": "Un registro de Tabularium pidió a Tabularis que instale un plugin.",
+    "plugin": "Plugin",
+    "version": "Versión",
+    "registry": "Registro",
+    "latest": "Última",
+    "installConfirm": "Instalar",
+    "installing": "Instalando…",
+    "loadingPreview": "Cargando detalles…",
+    "usingConfigured": "registro configurado",
+    "mismatchTitle": "Registro distinto al configurado",
+    "mismatchBody": "Tu registro configurado es {{configured}}. El enlace apunta a otro — revisa antes de continuar.",
+    "updateConfirm": "Actualizar a v{{version}}",
+    "alreadyInstalled": "La versión {{version}} ya está instalada."
+  },
+  "connectionCatalogue": {
+    "searchPlaceholder": "Buscar bases de datos…",
+    "clearSearch": "Borrar búsqueda",
+    "verified": "Verificado",
+    "installed": "Instalado",
+    "install": "Instalar",
+    "clear": "Limpiar",
+    "registryOffline": "Registro no disponible: mostrando solo controladores instalados e integrados.",
+    "noMatches": "Ninguna base de datos coincide con tus filtros.",
+    "clearFilters": "Limpiar filtros",
+    "driverCount_one": "{{count}} controlador",
+    "driverCount_other": "{{count}} controladores",
+    "connectTo": "Conectar a {{name}}",
+    "unavailableOnPlatform": "No disponible en tu plataforma",
+    "backToCatalogue": "Volver al catálogo",
+    "pickDriver": "Varios controladores se conectan a {{name}}. Elige uno:",
+    "latestVersion": "Última v{{version}}",
+    "continue": "Continuar",
+    "noReleaseTitle": "Aún no hay una versión instalable para tu plataforma.",
+    "noReleaseBody": "Este controlador no tiene una compilación descargable para tu SO/arquitectura. Consulta el registro para una versión actualizada.",
+    "notInstalled": "Este controlador aún no está instalado. Instálalo para configurar una conexión.",
+    "installVersion": "Instalar v{{version}}",
+    "installingVersion": "Instalando v{{version}}…",
+    "retryInstall": "Reintentar instalación"
   }
 }

@@ -272,10 +272,39 @@
     "noSearchResults": "No connections match \"{{query}}\"",
     "gridView": "Grid view",
     "listView": "List view",
+    "selectedCount": "{{count}} selected",
+    "deleteSelected": "Delete selected",
+    "moveSelected": "Move to group",
+    "exportSelected": "Export selected",
+    "deselectAll": "Deselect all",
+    "confirmDeleteSelected": "Are you sure you want to delete {{count}} selected connection(s)?",
+    "deleteSelectedTitle": "Delete selected connections",
     "export": "Export Connections",
     "import": "Import Connections",
     "exportTitle": "Export Connections",
     "exportWarning": "The exported file will contain your database and SSH passwords in plaintext. Please store it securely.",
+    "exportModal": {
+      "title": "Export Connections",
+      "subtitle": "Choose how to export your connections",
+      "subtitleSelected": "Export {{count}} selected connection(s)",
+      "encrypted": "Encrypted with a password",
+      "encryptedDesc": "All connections and passwords are included, protected with a password of your choice. Recommended for backups.",
+      "noSecrets": "Plain text, without passwords",
+      "noSecretsDesc": "Connections are exported as readable JSON, but all passwords and passphrases are excluded. Recommended for sharing.",
+      "plaintext": "Plain text, with all passwords",
+      "plaintextDesc": "Connections and passwords are exported as readable JSON. Anyone with the file can read your credentials.",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "passwordRequired": "A password is required for an encrypted export.",
+      "passwordMismatch": "Passwords do not match.",
+      "export": "Export"
+    },
+    "importPasswordModal": {
+      "title": "Encrypted Export File",
+      "subtitle": "This file is protected with a password",
+      "password": "Password",
+      "unlock": "Import"
+    },
     "importFromApp": {
       "title": "Import from App",
       "subtitle": "Import connections from another installed SQL client",
@@ -294,7 +323,8 @@
       "action": {
         "import": "Import",
         "skip": "Skip",
-        "replace": "Replace"
+        "replace": "Replace",
+        "applyToAll": "Action for all:"
       },
       "tabularisJsonHint": "Tabularis export file (.json)",
       "menuLabel": "Import connections…",
@@ -304,7 +334,9 @@
         "new": "New group…",
         "newPlaceholder": "Group name",
         "parentLabel": "in",
-        "parentNone": "Top level"
+        "parentNone": "Top level",
+        "applyToAll": "Group for all:",
+        "keepPerConnection": "Per connection"
       },
       "betaNotice": "Import from App is in beta. If you run into a problem,",
       "reportIssue": "report it on GitHub."
@@ -352,8 +384,8 @@
     "delimiterSemicolon": "Semicolon (;)",
     "delimiterTab": "Tab",
     "delimiterPipe": "Pipe (|)",
-    "csvIncludeHeaders": "Include CSV headers",
-    "csvIncludeHeadersDesc": "Include a header row with column names when copying rows as CSV.",
+    "csvIncludeHeaders": "Include column headers",
+    "csvIncludeHeadersDesc": "Include a header row with column names when copying rows as CSV or Markdown.",
     "csvHeaders": "Export column names",
     "detectJsonInTextColumns": "Detect JSON in text columns",
     "detectJsonInTextColumnsDesc": "Show the JSON viewer affordance when a non-typed text cell contains a JSON object or array. Adds a small per-cell parse cost.",
@@ -384,6 +416,11 @@
       "reset": "Reset to theme",
       "confirm": "Confirm",
       "cancel": "Cancel"
+    },
+    "dataGrid": {
+      "title": "Data Grid",
+      "stickyHeaders": "Sticky column headers",
+      "stickyHeadersDesc": "Keep the column headers visible at the top while scrolling through results."
     },
     "appearance_general": "General",
     "appearance_sqlEditor": "SQL Editor",
@@ -634,7 +671,9 @@
             }
           }
         }
-      }
+      },
+      "poweredBy": "Powered by",
+      "openHomepage": "Open homepage"
     },
     "shortcuts": {
       "title": "Keyboard Shortcuts",
@@ -663,9 +702,59 @@
       "notebookRunAll": "Run All Cells",
       "categories_notebook": "Notebook",
       "pasteImportClipboard": "Import from Clipboard",
-      "quickNavigator": "Quick Navigator"
+      "quickNavigator": "Quick Navigator",
+      "triggerSuggestions": "Trigger suggestions",
+      "refreshTable": "Refresh table"
     },
-    "aiActivity": "AI Activity"
+    "aiActivity": "AI Activity",
+    "backup": {
+      "title": "Backup",
+      "directory": "Backup folder",
+      "directoryDesc": "No folder selected yet.",
+      "chooseDirectory": "Choose folder",
+      "password": "Backup password",
+      "passwordDesc": "Backups are always encrypted. The password is stored in the system keychain.",
+      "passwordSetDesc": "Backups are encrypted with this password. It is stored in the system keychain.",
+      "passwordReplaceDesc": "Enter a new password. Backups already written keep the old one.",
+      "changePassword": "Change password",
+      "webdavPasswordSetDesc": "A password is stored in the system keychain.",
+      "passwordSaved": "Backup password saved.",
+      "configureFirst": "Configure a destination and set a backup password first.",
+      "interval": "Frequency",
+      "intervalDesc": "How often a new backup is written.",
+      "every6h": "6 h",
+      "every12h": "12 h",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "retention": "Backups to keep",
+      "retentionDesc": "Older backup files are deleted automatically.",
+      "files": "files",
+      "backupNow": "Back up now",
+      "lastBackup": "Last backup: {{date}}",
+      "noBackupYet": "No backup yet.",
+      "backupDone": "Backup written to {{path}}",
+      "custom": "Custom",
+      "destination": "Destination",
+      "target": "Backup destination",
+      "targetDesc": "Where the backup files are written. A folder synced by Dropbox, OneDrive or Syncthing gives you a cloud backup for free.",
+      "targetLocal": "Local folder",
+      "webdavUrl": "WebDAV URL",
+      "webdavUrlDesc": "URL of the WebDAV folder the backups are uploaded into (e.g. Nextcloud).",
+      "webdavUsername": "WebDAV username",
+      "webdavUsernameDesc": "Account used to authenticate against the WebDAV server.",
+      "webdavPassword": "WebDAV password",
+      "webdavPasswordDesc": "Stored in the system keychain. For Nextcloud, prefer an app password.",
+      "webdavSaved": "WebDAV password saved.",
+      "mode": "Backup trigger",
+      "modeDesc": "When a backup is written. Manual only backs up via the button below.",
+      "modeManual": "Manual",
+      "modeInterval": "Every interval",
+      "modeOnClose": "On close",
+      "modeOnLaunch": "On launch",
+      "nextBackup": "Next backup: {{date}}",
+      "nextBackupSoon": "Next backup: at the next check",
+      "hours": "hours"
+    }
   },
   "update": {
     "newVersionAvailable": "New Version Available",
@@ -802,7 +891,8 @@
     "scrollTabsRight": "Scroll tabs right",
     "useIamAuth": "Use AWS IAM Authentication (RDS)",
     "useIamAuthHint": "The password field is treated as an RDS auth token (from `aws rds generate-db-auth-token`). Requires TLS. Tokens expire every 15 minutes.",
-    "useIamAuthTlsRequired": "Enable an SSL mode above to use AWS IAM authentication."
+    "useIamAuthTlsRequired": "Enable an SSL mode above to use AWS IAM authentication.",
+    "changeDatabase": "Change database"
   },
   "sshConnections": {
     "title": "SSH Connections",
@@ -849,6 +939,7 @@
     "columnNotEditable": "Column \"{{column}}\" can't be edited — it is not a direct column of table \"{{table}}\" (likely an alias or computed value).",
     "pkRequiredToEdit": "To edit this result, include the primary key column \"{{pk}}\" in your SELECT.",
     "null": "null",
+    "emptySet": "(empty set)",
     "sortByAsc": "Sort by {{col}} ASC",
     "sortByDesc": "Sort by {{col}} DESC",
     "clearSort": "Clear sort",
@@ -1184,6 +1275,7 @@
       "viewTabs": "Tab view",
       "viewStacked": "Stacked view",
       "queryPrefix": "Query",
+      "resultSetPrefix": "Result",
       "results": "Results",
       "collapseAll": "Collapse all",
       "expandAll": "Expand all",
@@ -1745,7 +1837,17 @@
       "resourceTypeInvalid": "Resource type must be \"service\" or \"pod\"",
       "resourceNameRequired": "Resource name is required",
       "portInvalid": "Port must be between 1 and 65535"
-    }
+    },
+    "advancedSettings": "Advanced kubectl settings",
+    "kubectlPath": "kubectl Path",
+    "kubectlPathPlaceholder": "kubectl",
+    "kubeconfigPath": "Kubeconfig Path",
+    "kubeconfigPathPlaceholder": "Path to kubeconfig",
+    "pathValidationFailed": "Fix invalid advanced Kubernetes path fields before continuing.",
+    "pathSelectionReset": "Advanced Kubernetes paths changed. Choose the context, namespace, and resource again.",
+    "noContexts": "No contexts available",
+    "noNamespaces": "No namespaces available",
+    "noResources": "No resources available"
   },
   "routines": {
     "menuRun": "Run…",
@@ -1779,5 +1881,46 @@
   "miniGrid": {
     "runningQuery": "Running query...",
     "copyAll": "Copy all"
+  },
+  "deepLink": {
+    "installTitle": "Install plugin from registry",
+    "installSubtitle": "A Tabularium registry asked Tabularis to install a plugin.",
+    "plugin": "Plugin",
+    "version": "Version",
+    "registry": "Registry",
+    "latest": "Latest",
+    "installConfirm": "Install",
+    "installing": "Installing…",
+    "loadingPreview": "Loading details…",
+    "usingConfigured": "using configured registry",
+    "mismatchTitle": "Different registry than your configured one",
+    "mismatchBody": "Your configured registry is {{configured}}. The link points elsewhere; review before continuing.",
+    "updateConfirm": "Update to v{{version}}",
+    "alreadyInstalled": "Version {{version}} is already installed."
+  },
+  "connectionCatalogue": {
+    "searchPlaceholder": "Search databases…",
+    "clearSearch": "Clear search",
+    "verified": "Verified",
+    "installed": "Installed",
+    "install": "Install",
+    "clear": "Clear",
+    "registryOffline": "Registry unreachable — showing installed and built-in drivers only.",
+    "noMatches": "No databases match your filters.",
+    "clearFilters": "Clear filters",
+    "driverCount_one": "{{count}} driver",
+    "driverCount_other": "{{count}} drivers",
+    "connectTo": "Connect to {{name}}",
+    "unavailableOnPlatform": "Unavailable on your platform",
+    "backToCatalogue": "Back to catalogue",
+    "pickDriver": "Multiple drivers connect to {{name}}. Pick one:",
+    "latestVersion": "Latest v{{version}}",
+    "continue": "Continue",
+    "noReleaseTitle": "No installable release for your platform yet.",
+    "noReleaseBody": "This driver has no downloadable build for your OS/architecture. Check the registry for an updated release.",
+    "notInstalled": "This driver isn't installed yet. Install it to configure a connection.",
+    "installVersion": "Install v{{version}}",
+    "installingVersion": "Installing v{{version}}…",
+    "retryInstall": "Retry install"
   }
 }
