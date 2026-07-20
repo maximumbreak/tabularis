@@ -1503,6 +1503,18 @@ export const Editor = () => {
     updateTab,
   ]);
 
+  const handleRunAll = useCallback(() => {
+    if (!activeTab) return;
+    // Prefer the live editor content — activeTab.query lags behind by the
+    // onChange debounce.
+    const editor = editorsRef.current[activeTab.id];
+    const text = (editor?.getModel()?.getValue() ?? activeTab.query ?? "").trim();
+    if (!text) return;
+    const queries = splitQueries(text, activeDialect);
+    if (queries.length <= 1) runQuery(queries[0] || text, 1);
+    else runMultipleQueries(queries);
+  }, [activeTab, activeDialect, runQuery, runMultipleQueries]);
+
   const handleRunButton = useCallback(() => {
     if (!activeTab) return;
 
@@ -1614,17 +1626,18 @@ export const Editor = () => {
   activeDialectRef.current = activeDialect;
   supportsExplainRef.current = driverSupportsExplain;
 
-  // Global Ctrl/Command+F5 shortcut for Run
+  // Global Ctrl/Command+F5 shortcut for Run (+Shift for Run All)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "F5") {
         e.preventDefault();
-        handleRunButton();
+        if (e.shiftKey) handleRunAll();
+        else handleRunButton();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleRunButton]);
+  }, [handleRunButton, handleRunAll]);
 
   // Global Ctrl+Tab shortcut: open tab switcher and advance to next tab circularly.
   // In split mode only the focused pane (explorerConnectionId) handles the shortcut.
@@ -3167,6 +3180,18 @@ export const Editor = () => {
                       onClick={() => setIsRunDropdownOpen(false)}
                     />
                     <div className="absolute top-full left-0 mt-1 w-80 bg-surface-secondary border border-strong rounded shadow-xl z-50 flex flex-col py-1 max-h-80 overflow-y-auto">
+                      {dropdownQueries.length > 1 && (
+                        <button
+                          onClick={() => {
+                            handleRunAll();
+                            setIsRunDropdownOpen(false);
+                          }}
+                          className="flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-secondary hover:text-white hover:bg-surface-tertiary/50 border-b border-strong transition-colors"
+                        >
+                          <Play size={12} fill="currentColor" className="text-green-500 shrink-0" />
+                          {t("editor.runAll")} ({dropdownQueries.length})
+                        </button>
+                      )}
                       {dropdownQueries.length === 0 ? (
                         <div className="px-4 py-2 text-xs text-muted italic">
                           {t("editor.noValidQueries")}
@@ -3392,6 +3417,7 @@ export const Editor = () => {
                   if (isActive) updateTab(tab.id, { query: val });
                 }}
                 onRun={handleRunButton}
+                onRunAll={handleRunAll}
                 onMount={
                   isActive
                     ? (editor, monaco) =>

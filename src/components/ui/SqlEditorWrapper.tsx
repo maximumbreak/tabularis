@@ -24,6 +24,8 @@ interface SqlEditorWrapperProps {
   editorKey?: string;
   /** When provided, highlights the statement the cursor is currently inside. */
   dialect?: Dialect | string;
+  /** Run the whole editor content (Mod+Shift+Enter). */
+  onRunAll?: () => void;
 }
 
 // Internal component that resets when key changes
@@ -34,13 +36,16 @@ const SqlEditorInternal = ({
   onMount,
   height = "100%",
   options,
-  dialect
+  dialect,
+  onRunAll
 }: SqlEditorWrapperProps & { editorKey: string }) => {
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const monacoRef = useRef<typeof Monaco | null>(null);
   const onRunRef = useRef(onRun);
   onRunRef.current = onRun;
+  const onRunAllRef = useRef(onRunAll);
+  onRunAllRef.current = onRunAll;
   const dialectRef = useRef(dialect);
   dialectRef.current = dialect;
   const lastSplitRef = useRef<{ text: string; statements: Statement[] }>({
@@ -157,6 +162,14 @@ const SqlEditorInternal = ({
         monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
         () => {
           onRunRef.current();
+        }
+      );
+
+      // Bind Ctrl+Shift+Enter to Run All
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter,
+        () => {
+          onRunAllRef.current?.();
         }
       );
 
