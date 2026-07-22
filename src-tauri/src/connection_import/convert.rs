@@ -222,6 +222,7 @@ fn build_connection(
         sort_order: None,
         detect_json_in_text_columns: None,
         appearance: None,
+        environment: None,
     };
     (saved, ssh_record)
 }

@@ -56,6 +56,8 @@ export interface SavedConnection {
   /** Per-connection opt-in: detect JSON in plain text columns. */
   detect_json_in_text_columns?: boolean;
   appearance?: ConnectionAppearance;
+  /** Free-form environment label (e.g. "production", "staging", or a custom name). */
+  environment?: string;
 }
 
 export interface ConnectionGroup {
@@ -87,6 +89,7 @@ export interface ConnectionData {
   driver: string;
   capabilities: DriverCapabilities | null;
   connectionName: string;
+  environment: string | null;
   databaseName: string;
   tables: TableInfo[];
   views: ViewInfo[];
@@ -117,6 +120,7 @@ export interface DatabaseContextType {
   activeDriver: string | null;
   activeCapabilities: DriverCapabilities | null;
   activeConnectionName: string | null;
+  activeEnvironment: string | null;
   activeDatabaseName: string | null;
   tables: TableInfo[];
   views: ViewInfo[];

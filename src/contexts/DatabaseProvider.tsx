@@ -24,6 +24,7 @@ const createEmptyConnectionData = (driver: string = '', name: string = '', dbNam
   driver,
   capabilities: null,
   connectionName: name,
+  environment: null,
   databaseName: dbName,
   tables: [],
   views: [],
@@ -76,6 +77,7 @@ export const DatabaseProvider = ({ children }: { children: ReactNode }) => {
   const activeDriver = activeData?.driver ?? null;
   const activeCapabilities = activeData?.capabilities ?? null;
   const activeConnectionName = activeData?.connectionName ?? null;
+  const activeEnvironment = activeData?.environment ?? null;
   const activeDatabaseName = activeData?.databaseName ?? null;
   const tables = activeData?.tables ?? [];
   const views = activeData?.views ?? [];
@@ -109,7 +111,8 @@ export const DatabaseProvider = ({ children }: { children: ReactNode }) => {
             isMultiDatabaseCapable(activeCapabilities) && selectedDatabases.length > 1
               ? (activeSchema ?? activeDatabaseName)
               : activeDatabaseName;
-          title = `tabularis - ${activeConnectionName} (${dbDisplay}${schemaSuffix})`;
+          const envSuffix = activeEnvironment ? ` [${activeEnvironment}]` : '';
+          title = `tabularis - ${activeConnectionName} (${dbDisplay}${schemaSuffix})${envSuffix}`;
         }
         await invoke('set_window_title', { title });
       } catch (e) {
@@ -117,7 +120,7 @@ export const DatabaseProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     updateTitle();
-  }, [activeConnectionName, activeDatabaseName, activeSchema, activeCapabilities, selectedDatabases]);
+  }, [activeConnectionName, activeEnvironment, activeDatabaseName, activeSchema, activeCapabilities, selectedDatabases]);
 
   const updateConnectionData = useCallback((connectionId: string, updates: Partial<ConnectionData>) => {
     setConnectionDataMap(prev => ({
@@ -517,6 +520,7 @@ export const DatabaseProvider = ({ children }: { children: ReactNode }) => {
         driver,
         capabilities,
         connectionName: conn.name,
+        environment: conn.environment ?? null,
         databaseName: primaryDb,
       });
 
@@ -1005,6 +1009,7 @@ export const DatabaseProvider = ({ children }: { children: ReactNode }) => {
       activeDriver,
       activeCapabilities,
       activeConnectionName,
+      activeEnvironment,
       activeDatabaseName,
       tables,
       views,

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import type { ConnectionAppearance } from "../../contexts/DatabaseContext";
+import { ENVIRONMENT_PRESETS, ENVIRONMENT_LABELS, isEnvironmentPreset } from "../../utils/environments";
 import { AppearanceSection } from "./NewConnectionModal/AppearanceSection";
 import { open } from "@tauri-apps/plugin-dialog";
 import clsx from "clsx";
@@ -129,6 +130,7 @@ interface SavedConnection {
   params: ConnectionParams;
   detect_json_in_text_columns?: boolean;
   appearance?: ConnectionAppearance;
+  environment?: string;
 }
 
 interface NewConnectionModalProps {
@@ -313,6 +315,11 @@ export const NewConnectionModal = ({
   >([]);
   const [dbSearchQuery, setDbSearchQuery] = useState("");
   const [detectJsonInTextColumns, setDetectJsonInTextColumns] = useState(false);
+  // "" = none, one of ENVIRONMENT_PRESETS, or "custom" (free text in environmentCustomValue)
+  const [environmentPreset, setEnvironmentPreset] = useState("");
+  const [environmentCustomValue, setEnvironmentCustomValue] = useState("");
+  // Custom environment names already used by other connections, offered as datalist suggestions.
+  const [environmentSuggestions, setEnvironmentSuggestions] = useState<string[]>([]);
   const [passwordDirty, setPasswordDirty] = useState(false);
   const [sshPasswordDirty, setSshPasswordDirty] = useState(false);
   const [connectionString, setConnectionString] = useState("");
@@ -1333,6 +1340,8 @@ export const NewConnectionModal = ({
       setK8sDiscoveryErrors({ contexts: null, namespaces: null, resources: null });
       setK8sPathActionError(null);
       setK8sSelectionError(null);
+      setEnvironmentPreset("");
+      setEnvironmentCustomValue("");
 
       if (initialConnection) {
         setName(initialConnection.name);
@@ -1341,6 +1350,15 @@ export const NewConnectionModal = ({
           initialConnection.detect_json_in_text_columns === true,
         );
         setAppearance(initialConnection.appearance ?? {});
+        const env = initialConnection.environment;
+        if (!env) {
+          setEnvironmentPreset("");
+        } else if (isEnvironmentPreset(env)) {
+          setEnvironmentPreset(env);
+        } else {
+          setEnvironmentPreset("custom");
+          setEnvironmentCustomValue(env);
+        }
         const db = initialConnection.params.database;
         setSshMode(
           initialConnection.params.ssh_connection_id ? "existing" : "inline",
@@ -1451,6 +1469,20 @@ export const NewConnectionModal = ({
       const nextK8sConnections = await loadK8sConnections();
       if (!isCurrentInit()) return;
       setK8sConnections(nextK8sConnections);
+
+      try {
+        const allConnections = await invoke<SavedConnection[]>("get_connections");
+        if (!isCurrentInit()) return;
+        const customValues = new Set<string>();
+        for (const c of allConnections) {
+          if (c.environment && !isEnvironmentPreset(c.environment)) {
+            customValues.add(c.environment);
+          }
+        }
+        setEnvironmentSuggestions(Array.from(customValues).sort());
+      } catch {
+        // Suggestions are a nice-to-have; ignore failures.
+      }
     };
     void init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1732,6 +1764,12 @@ export const NewConnectionModal = ({
       const params = withInlineK8sPaths(paramsBase, inlinePaths.options);
       const appearancePayload =
         appearance.icon || appearance.accentColor ? appearance : undefined;
+      const environmentToSave =
+        environmentPreset === ""
+          ? null
+          : environmentPreset === "custom"
+            ? environmentCustomValue.trim() || null
+            : environmentPreset;
       const finalImagePath =
         appearance.icon?.type === "image" ? appearance.icon.path : null;
       const uploadedPathsForAction = [...uploadedPathsRef.current];
@@ -1757,6 +1795,7 @@ export const NewConnectionModal = ({
             name,
             params,
             detectJsonInTextColumns: detectJsonInTextColumns ? true : null,
+            environment: environmentToSave,
           });
           await invoke("set_connection_appearance", {
             id: initialConnection.id,
@@ -1767,6 +1806,7 @@ export const NewConnectionModal = ({
             name,
             params,
             detectJsonInTextColumns: detectJsonInTextColumns ? true : null,
+            environment: environmentToSave,
           });
           if (appearancePayload) {
             await invoke("set_connection_appearance", {
@@ -2156,6 +2196,44 @@ export const NewConnectionModal = ({
           </label>
         </>
       )}
+
+      {/* Environment (purely a display label — no color or safety behavior) */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] uppercase font-semibold tracking-wider text-muted">
+          {t("newConnection.environment", { defaultValue: "Environment" })}
+        </label>
+        <Select
+          value={environmentPreset || null}
+          options={["", ...ENVIRONMENT_PRESETS, "custom"]}
+          labels={{ "": t("newConnection.environmentNone", { defaultValue: "None" }), ...ENVIRONMENT_LABELS }}
+          onChange={setEnvironmentPreset}
+          placeholder={t("newConnection.environmentNone", { defaultValue: "None" })}
+          searchable={false}
+        />
+        {environmentPreset === "custom" && (
+          <>
+            <input
+              type="text"
+              list="environment-custom-suggestions"
+              value={environmentCustomValue}
+              onChange={(e) => setEnvironmentCustomValue(e.target.value)}
+              autoCorrect="off"
+              autoCapitalize="off"
+              autoComplete="off"
+              spellCheck={false}
+              className="w-full px-3 py-2 bg-base border border-strong rounded-md text-sm text-primary placeholder:text-muted placeholder:italic focus:border-blue-500 focus:outline-none transition-colors mt-1"
+              placeholder={t("newConnection.environmentCustomPlaceholder", {
+                defaultValue: "e.g. sandbox",
+              })}
+            />
+            <datalist id="environment-custom-suggestions">
+              {environmentSuggestions.map((suggestion) => (
+                <option key={suggestion} value={suggestion} />
+              ))}
+            </datalist>
+          </>
+        )}
+      </div>
 
       {/* Detect JSON in text columns (per-connection opt-in) */}
       <label className="flex items-start gap-2 cursor-pointer select-none w-fit">

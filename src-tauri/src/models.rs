@@ -272,6 +272,9 @@ pub struct SavedConnection {
     pub detect_json_in_text_columns: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub appearance: Option<ConnectionAppearance>,
+    /// Free-form environment label (e.g. "production", "staging", or a custom name).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub environment: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -628,6 +631,22 @@ mod appearance_tests {
         let s = r#"{"id":"1","name":"x","params":{"driver":"mysql","database":""}}"#;
         let c: SavedConnection = serde_json::from_str(s).unwrap();
         assert!(c.appearance.is_none());
+    }
+
+    #[test]
+    fn saved_connection_without_environment_deserializes() {
+        let s = r#"{"id":"1","name":"x","params":{"driver":"mysql","database":""}}"#;
+        let c: SavedConnection = serde_json::from_str(s).unwrap();
+        assert!(c.environment.is_none());
+    }
+
+    #[test]
+    fn saved_connection_environment_roundtrips() {
+        let s = r#"{"id":"1","name":"x","params":{"driver":"mysql","database":""},"environment":"production"}"#;
+        let c: SavedConnection = serde_json::from_str(s).unwrap();
+        assert_eq!(c.environment.as_deref(), Some("production"));
+        let out = serde_json::to_string(&c).unwrap();
+        assert!(out.contains(r#""environment":"production""#));
     }
 
     #[test]

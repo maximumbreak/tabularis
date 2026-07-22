@@ -811,6 +811,7 @@ pub async fn save_connection<R: Runtime>(
     name: String,
     params: ConnectionParams,
     detect_json_in_text_columns: Option<bool>,
+    environment: Option<String>,
 ) -> Result<SavedConnection, String> {
     log::info!("Saving new connection: {}", name);
 
@@ -852,6 +853,7 @@ pub async fn save_connection<R: Runtime>(
         sort_order: None,
         detect_json_in_text_columns,
         appearance: None,
+        environment,
     };
     conn_file.connections.push(new_conn.clone());
     save_connections_and_invalidate(&app, &path, &conn_file)?;
@@ -924,6 +926,7 @@ pub async fn update_connection<R: Runtime>(
     name: String,
     params: ConnectionParams,
     detect_json_in_text_columns: Option<bool>,
+    environment: Option<String>,
 ) -> Result<SavedConnection, String> {
     let path = get_config_path(&app)?;
     let mut conn_file = persistence::load_connections_file(&path)?;
@@ -984,6 +987,7 @@ pub async fn update_connection<R: Runtime>(
         sort_order: original_sort_order,
         detect_json_in_text_columns,
         appearance: original_appearance,
+        environment,
     };
 
     conn_file.connections[conn_idx] = updated.clone();
@@ -1169,6 +1173,7 @@ pub async fn duplicate_connection<R: Runtime>(
         sort_order: None,                    // Will be placed at end of group
         detect_json_in_text_columns: original.detect_json_in_text_columns,
         appearance: new_appearance,
+        environment: original.environment.clone(),
     };
 
     conn_file.connections.push(new_conn.clone());
@@ -2103,6 +2108,7 @@ mod tests {
             sort_order: None,
             detect_json_in_text_columns: None,
             appearance: None,
+            environment: None,
         }
     }
 
@@ -2132,6 +2138,7 @@ mod tests {
                 accent_color: Some("#ff0000".to_string()),
                 icon: Some(IconOverride::Emoji { value: "🐘".to_string() }),
             }),
+            environment: None,
         };
 
         // Simulate the pattern used in update_connection after the fix.
@@ -2145,6 +2152,7 @@ mod tests {
             sort_order: existing.sort_order,
             detect_json_in_text_columns: None,
             appearance: original_appearance,
+            environment: None,
         };
 
         let app = updated.appearance.as_ref().expect("appearance must be preserved");
@@ -2162,6 +2170,7 @@ mod tests {
             sort_order: None,
             detect_json_in_text_columns: None,
             appearance,
+            environment: None,
         };
         ConnectionsFile {
             groups: vec![],

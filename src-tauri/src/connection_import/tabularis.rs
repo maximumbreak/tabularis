@@ -241,6 +241,7 @@ mod tests {
             sort_order: Some(3),
             detect_json_in_text_columns: None,
             appearance: None,
+            environment: None,
         }
     }
 

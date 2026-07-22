@@ -123,6 +123,7 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
     refreshRoutines,
     refreshTriggers,
     activeConnectionName,
+    activeEnvironment,
     activeDatabaseName,
     schemas,
     isLoadingSchemas,
@@ -593,7 +594,10 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
             <div className="flex flex-col min-w-0">
               <span>{t("sidebar.explorer")}</span>
               {activeConnectionName && (
-                <span className="text-xs font-normal text-muted truncate">{activeConnectionName}</span>
+                <span className="text-xs font-normal text-muted truncate">
+                  {activeConnectionName}
+                  {activeEnvironment ? ` [${activeEnvironment}]` : ""}
+                </span>
               )}
             </div>
           </div>
