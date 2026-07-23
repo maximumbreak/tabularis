@@ -136,6 +136,7 @@ import {
   resolveNextTabId,
   isFocusedPane,
 } from "../utils/tabScroll";
+import { computeAutoScrollSpeed } from "../utils/notebookDnd";
 import clsx from "clsx";
 
 interface EditorState {
@@ -198,6 +199,7 @@ export const Editor = () => {
     activeTab,
     activeTabId,
     updateTab,
+    reorderTab,
     updateResultEntry: patchResultEntry,
     addTab,
     setActiveTabId,
@@ -549,6 +551,115 @@ export const Editor = () => {
     },
     [tabs, activeTabId, setActiveTabId],
   );
+
+  // Tab reordering via native HTML5 drag-and-drop. `dropPos` is a gap index
+  // into `tabs` (0 = before the first tab, tabs.length = after the last);
+  // `dropIndicatorLeft` is its pixel offset within the scroll container, used
+  // to render the insertion line.
+  const [dragTabId, setDragTabId] = useState<string | null>(null);
+  const [dropPos, setDropPos] = useState<number | null>(null);
+  const [dropIndicatorLeft, setDropIndicatorLeft] = useState<number | null>(null);
+  const autoScrollRafRef = useRef<number | null>(null);
+  const autoScrollSpeedRef = useRef(0);
+
+  const stopTabAutoScroll = useCallback(() => {
+    if (autoScrollRafRef.current !== null) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
+    }
+    autoScrollSpeedRef.current = 0;
+  }, []);
+
+  // rAF loop so the tab strip keeps scrolling while the cursor is held near an
+  // edge, even when no further dragover events fire (native DnD doesn't
+  // auto-scroll the container on its own).
+  const stepTabAutoScroll = useCallback(() => {
+    const tick = () => {
+      const el = tabScrollRef.current;
+      const speed = autoScrollSpeedRef.current;
+      if (!el || speed === 0) {
+        autoScrollRafRef.current = null;
+        return;
+      }
+      el.scrollLeft += speed;
+      autoScrollRafRef.current = requestAnimationFrame(tick);
+    };
+    tick();
+  }, []);
+
+  useEffect(() => stopTabAutoScroll, [stopTabAutoScroll]);
+
+  const handleTabDragStart = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, tabId: string) => {
+      e.dataTransfer.effectAllowed = "move";
+      setDragTabId(tabId);
+    },
+    [],
+  );
+
+  const handleTabDragEnd = useCallback(() => {
+    setDragTabId(null);
+    setDropPos(null);
+    setDropIndicatorLeft(null);
+    stopTabAutoScroll();
+  }, [stopTabAutoScroll]);
+
+  const handleTabDragOver = useCallback(
+    (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
+      if (!dragTabId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      // Left half of the tab drops before it, right half drops after it.
+      const target = e.currentTarget;
+      const rect = target.getBoundingClientRect();
+      const after = e.clientX > rect.left + rect.width / 2;
+      setDropPos(after ? index + 1 : index);
+      setDropIndicatorLeft(after ? target.offsetLeft + target.offsetWidth : target.offsetLeft);
+    },
+    [dragTabId],
+  );
+
+  // Drive edge auto-scroll from the scroll container, and fall back to
+  // "drop after the last tab" when hovering empty space past the last tab.
+  const handleTabsContainerDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!dragTabId) return;
+      const container = tabScrollRef.current;
+      if (!container) return;
+      e.preventDefault();
+      const containerRect = container.getBoundingClientRect();
+      const speed = computeAutoScrollSpeed(
+        { top: containerRect.left, bottom: containerRect.right },
+        e.clientX,
+      );
+      autoScrollSpeedRef.current = speed;
+      if (speed !== 0 && autoScrollRafRef.current === null) {
+        autoScrollRafRef.current = requestAnimationFrame(stepTabAutoScroll);
+      }
+      if (e.target === container) {
+        const lastTab = container.children[tabs.length - 1] as HTMLElement | undefined;
+        setDropPos(tabs.length);
+        setDropIndicatorLeft(lastTab ? lastTab.offsetLeft + lastTab.offsetWidth : 0);
+      }
+    },
+    [dragTabId, tabs.length, stepTabAutoScroll],
+  );
+
+  const handleTabsDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      stopTabAutoScroll();
+      const fromTabId = dragTabId;
+      const insertAt = dropPos;
+      setDragTabId(null);
+      setDropPos(null);
+      setDropIndicatorLeft(null);
+      if (fromTabId === null || insertAt === null) return;
+      reorderTab(fromTabId, insertAt);
+    },
+    [dragTabId, dropPos, stopTabAutoScroll, reorderTab],
+  );
+
   const processingRef = useRef<string | null>(null);
   const pendingExecutionsRef = useRef<
     Record<string, { sql: string; page: number }>
@@ -3048,11 +3159,17 @@ export const Editor = () => {
         <div
           ref={tabScrollRef}
           onScroll={updateScrollArrows}
-          className="flex flex-1 overflow-x-auto no-scrollbar h-full"
+          onDragOver={handleTabsContainerDragOver}
+          onDrop={handleTabsDrop}
+          className="flex flex-1 overflow-x-auto no-scrollbar h-full relative"
         >
-          {tabs.map((tab) => (
+          {tabs.map((tab, index) => (
             <div
               key={tab.id}
+              draggable
+              onDragStart={(e) => handleTabDragStart(e, tab.id)}
+              onDragEnd={handleTabDragEnd}
+              onDragOver={handleTabDragOver(index)}
               onClick={() => setActiveTabId(tab.id)}
               onContextMenu={(e) => handleTabContextMenu(e, tab.id)}
               onAuxClick={(e) => {
@@ -3066,6 +3183,7 @@ export const Editor = () => {
                 activeTabId === tab.id
                   ? "bg-base text-primary font-medium"
                   : "text-muted hover:bg-[var(--tab-hover)] hover:text-secondary",
+                dragTabId === tab.id && "opacity-40",
               )}
               style={
                 activeTabId === tab.id
@@ -3101,6 +3219,7 @@ export const Editor = () => {
               {editingTabId === tab.id ? (
                 <input
                   type="text"
+                  draggable={false}
                   value={editingTabTitle}
                   autoFocus
                   onClick={(e) => e.stopPropagation()}
@@ -3135,6 +3254,7 @@ export const Editor = () => {
                 </span>
               )}
               <button
+                draggable={false}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCloseTab(tab.id);
@@ -3158,6 +3278,12 @@ export const Editor = () => {
               )}
             </div>
           ))}
+          {dragTabId && dropIndicatorLeft !== null && (
+            <div
+              className="absolute top-0 bottom-0 w-0.5 pointer-events-none z-10"
+              style={{ left: dropIndicatorLeft, backgroundColor: tabAccentColor }}
+            />
+          )}
         </div>
         <button
           onClick={() =>
