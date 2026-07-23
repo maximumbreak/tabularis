@@ -3847,6 +3847,7 @@ pub async fn open_er_diagram_window(
     database_name: String,
     focus_table: Option<String>,
     schema: Option<String>,
+    environment: Option<String>,
 ) -> Result<(), String> {
     use tauri::{WebviewUrl, WebviewWindowBuilder};
     use urlencoding::encode;
@@ -3855,9 +3856,13 @@ pub async fn open_er_diagram_window(
         .as_deref()
         .map(|s| format!("/{}", s))
         .unwrap_or_default();
+    let env_suffix = environment
+        .as_deref()
+        .map(|e| format!(" [{}]", e))
+        .unwrap_or_default();
     let title = format!(
-        "tabularis - {} ({}{})",
-        database_name, connection_name, schema_suffix
+        "tabularis - {} ({}{}){}",
+        database_name, connection_name, schema_suffix, env_suffix
     );
     let mut url = format!(
         "/schema-diagram?connectionId={}&connectionName={}&databaseName={}",

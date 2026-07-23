@@ -185,6 +185,7 @@ export const Editor = () => {
     activeCapabilities,
     selectedDatabases,
     activeConnectionName,
+    activeEnvironment,
     activeDatabaseName,
   } = useDatabase();
   const { allDrivers } = useDrivers();
@@ -421,7 +422,8 @@ export const Editor = () => {
           } else {
             dbDisplay = activeDatabaseName;
           }
-          title = `tabularis - ${activeConnectionName} (${dbDisplay}${schemaSuffix})`;
+          const envSuffix = activeEnvironment ? ` [${activeEnvironment}]` : "";
+          title = `tabularis - ${activeConnectionName} (${dbDisplay}${schemaSuffix})${envSuffix}`;
         }
         await invoke("set_window_title", { title });
       } catch (e) {
@@ -433,6 +435,7 @@ export const Editor = () => {
     activeTabId,
     activeTab?.schema,
     activeConnectionName,
+    activeEnvironment,
     activeDatabaseName,
     activeSchema,
     activeCapabilities,

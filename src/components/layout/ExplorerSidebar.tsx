@@ -647,6 +647,7 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
                               connectionName: activeConnectionName || "Unknown",
                               databaseName: activeDatabaseName || "Unknown",
                               ...(activeSchema ? { schema: activeSchema } : {}),
+                              ...(activeEnvironment ? { environment: activeEnvironment } : {}),
                             });
                           } catch (e) {
                             console.error("Failed to open ER Diagram window:", e);
@@ -686,6 +687,7 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
                         connectionName: activeConnectionName || "Unknown",
                         databaseName: activeDatabaseName || "Unknown",
                         ...(activeSchema ? { schema: activeSchema } : {}),
+                        ...(activeEnvironment ? { environment: activeEnvironment } : {}),
                       });
                     } catch (e) {
                       console.error("Failed to open ER Diagram window:", e);
@@ -1428,6 +1430,7 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
                             connectionId: activeConnectionId || "",
                             connectionName: activeConnectionName || "Unknown",
                             databaseName: db,
+                            ...(activeEnvironment ? { environment: activeEnvironment } : {}),
                           });
                         } catch (e) {
                           console.error("Failed to open ER Diagram window:", e);
@@ -1868,6 +1871,7 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
                             databaseName: activeDatabaseName || "Unknown",
                             focusTable: contextMenu.id,
                             ...(ctxSchema ? { schema: ctxSchema } : {}),
+                            ...(activeEnvironment ? { environment: activeEnvironment } : {}),
                           });
                         } catch (e) {
                           console.error("Failed to open ER Diagram window:", e);
@@ -2352,6 +2356,7 @@ export const ExplorerSidebar = ({ sidebarWidth, startResize, onCollapse, sidebar
                                         connectionId: activeConnectionId || "",
                                         connectionName: activeConnectionName || "Unknown",
                                         databaseName: contextMenu.id,
+                                        ...(activeEnvironment ? { environment: activeEnvironment } : {}),
                                       });
                                     } catch (e) {
                                       console.error("Failed to open ER Diagram window:", e);
